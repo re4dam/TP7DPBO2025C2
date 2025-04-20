@@ -78,6 +78,71 @@ class Transaction
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function addTransaction(
+        int $id_maid,
+        int $id_user,
+        string $job_type,
+        string $description,
+        string $address,
+        string $date,
+        string $status,
+        float $total_cost
+    ): bool {
+        $stmt = $this->db->prepare("INSERT INTO transactions 
+                                  (id_maid, id_user, job_type, description, address_of_job, date, status, total_cost) 
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        return $stmt->execute([
+            $id_maid,
+            $id_user,
+            $job_type,
+            $description,
+            $address,
+            $date,
+            $status,
+            $total_cost
+        ]);
+    }
+
+    public function updateTransaction(
+        int $id,
+        int $id_maid,
+        int $id_user,
+        string $job_type,
+        string $description,
+        string $address,
+        string $date,
+        string $status,
+        float $total_cost
+    ): bool {
+        $stmt = $this->db->prepare("UPDATE transactions SET 
+                                  id_maid = ?,
+                                  id_user = ?,
+                                  job_type = ?,
+                                  description = ?,
+                                  address_of_job = ?,
+                                  date = ?,
+                                  status = ?,
+                                  total_cost = ?
+                                  WHERE id = ?");
+        return $stmt->execute([
+            $id_maid,
+            $id_user,
+            $job_type,
+            $description,
+            $address,
+            $date,
+            $status,
+            $total_cost,
+            $id
+        ]);
+    }
+
+    public function deleteTransaction(int $id): bool
+    {
+        $stmt = $this->db->prepare("DELETE FROM transactions WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
     public function updateStatus(int $id, string $status): bool
     {
         $stmt = $this->db->prepare("UPDATE transactions SET status = ? WHERE id = ?");
@@ -100,8 +165,6 @@ class Transaction
         if (!empty($searchTerm)) {
             $query .= " WHERE m.name LIKE :search OR u.name LIKE :search OR t.job_type LIKE :search";
         }
-
-        $query .= " ORDER BY t.date DESC";
 
         $stmt = $this->db->prepare($query);
 

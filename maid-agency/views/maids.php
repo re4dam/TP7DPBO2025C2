@@ -6,9 +6,26 @@ $search = isset($_GET['search']) ? trim(htmlspecialchars($_GET['search'])) : '';
 $maids = ($search !== '')
     ? $maid->searchMaids($search)
     : $maid->getAllMaids();
+
+// Check for error message in session or query parameters
+$errorMsg = $_GET['error'] ?? '';
+$successMsg = $_GET['message'] ?? '';
 ?>
 
 <h3>Maid List</h3>
+
+<!-- Display error/success messages -->
+<?php if (!empty($errorMsg)): ?>
+    <div class="alert alert-danger mb-3">
+        <?= htmlspecialchars($errorMsg) ?>
+    </div>
+<?php endif; ?>
+
+<?php if (!empty($successMsg)): ?>
+    <div class="alert alert-success mb-3">
+        <?= htmlspecialchars($successMsg) ?>
+    </div>
+<?php endif; ?>
 
 <!-- Simple Search Form -->
 <form method="get" action="">
@@ -35,7 +52,7 @@ $maids = ($search !== '')
             <th>ID</th>
             <th>Name</th>
             <th>Specialization</th>
-            <th>Salary (RM)</th>
+            <th>Salary (RP)</th>
             <th>Availability</th>
             <th>Actions</th>
         </tr>
@@ -47,16 +64,20 @@ $maids = ($search !== '')
                     <td><?= $m['id'] ?></td>
                     <td><?= htmlspecialchars($m['name']) ?></td>
                     <td><?= htmlspecialchars($m['specialization']) ?></td>
-                    <td><?= number_format($m['salary'], 2) ?></td>
+                    <td>Rp. <?= number_format($m['salary'], 2) ?></td>
                     <td><?= ucfirst($m['availability_status']) ?></td>
                     <td>
                         <a href="?page=maids&edit=<?= $m['id'] ?><?= isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">Edit</a>
 
-                        <form method="post" action="" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this maid?')">
-                            <input type="hidden" name="action" value="delete_maid">
-                            <input type="hidden" name="id" value="<?= $m['id'] ?>">
-                            <button type="submit">Delete</button>
-                        </form>
+                        <?php if (!$maid->hasMaidTransactions($m['id'])): ?>
+                            <form method="post" action="" style="display:inline" onsubmit="return confirm('Are you sure you want to delete this maid?')">
+                                <input type="hidden" name="action" value="delete_maid">
+                                <input type="hidden" name="id" value="<?= $m['id'] ?>">
+                                <button type="submit">Delete</button>
+                            </form>
+                        <?php else: ?>
+                            <button type="button" class="disabled-btn" title="Cannot delete: This maid has associated transactions" disabled>Delete</button>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -110,9 +131,8 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
         <div class="form-group">
             <label for="availability">Availability:</label>
             <select name="availability">
-                <option value="Available" <?= $editMode && $editMaidData['availability_status'] == 'Available' ? 'selected' : '' ?>>Available</option>
-                <option value="Unavailable" <?= $editMode && $editMaidData['availability_status'] == 'Unavailable' ? 'selected' : '' ?>>Unavailable</option>
-                <option value="On Leave" <?= $editMode && $editMaidData['availability_status'] == 'On Leave' ? 'selected' : '' ?>>On Leave</option>
+                <option value="available" <?= $editMode && $editMaidData['availability_status'] == 'Available' ? 'selected' : '' ?>>Available</option>
+                <option value="on_leave" <?= $editMode && $editMaidData['availability_status'] == 'On Leave' ? 'selected' : '' ?>>On Leave</option>
             </select>
         </div>
         <button type="submit"><?php echo $editMode ? 'Update Maid' : 'Add Maid'; ?></button>
@@ -121,3 +141,12 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
         <?php endif; ?>
     </form>
 </div>
+
+<!-- Add styles for disabled button -->
+<style>
+    .disabled-btn {
+        background-color: #ccc;
+        color: #666;
+        cursor: not-allowed;
+    }
+</style>

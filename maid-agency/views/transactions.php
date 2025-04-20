@@ -16,21 +16,6 @@ function getStatusBadge($status)
     }
 }
 
-function getPaymentBadge($paymentStatus)
-{
-    switch ($paymentStatus) {
-        case 'paid':
-            return 'success';
-        case 'partially_paid':
-            return 'info';
-        case 'unpaid':
-            return 'danger';
-        case 'refunded':
-            return 'secondary';
-        default:
-            return 'warning';
-    }
-}
 
 // Get search term if exists
 $searchTerm = $_GET['search'] ?? '';
@@ -90,12 +75,11 @@ $allUsers = $user->getAllUsers();
             <th>Maid</th>
             <th>Customer</th>
             <th>Job Type</th>
+            <th>Description</th>
             <th>Location</th>
             <th>Date/Time</th>
-            <th>Duration</th>
             <th>Status</th>
-            <th>Payment</th>
-            <th>Amount (RM)</th>
+            <th>Amount (RP)</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -114,20 +98,15 @@ $allUsers = $user->getAllUsers();
                     <td><?= htmlspecialchars($tr['maid_name'] ?? 'N/A') ?></td>
                     <td><?= htmlspecialchars($tr['user_name'] ?? 'N/A') ?></td>
                     <td><?= htmlspecialchars($tr['job_type']) ?></td>
+                    <td><?= htmlspecialchars($tr['description']) ?></td>
                     <td><?= htmlspecialchars($tr['address_of_job']) ?></td>
-                    <td><?= date('d M Y H:i', strtotime($tr['date'])) ?></td>
-                    <td><?= $tr['duration'] ?> hours</td>
+                    <td><?= date('d M Y', strtotime($tr['date'])) ?></td>
                     <td>
                         <span class="badge bg-<?= getStatusBadge($tr['status']) ?>">
                             <?= ucfirst($tr['status']) ?>
                         </span>
                     </td>
-                    <td>
-                        <span class="badge bg-<?= getPaymentBadge($tr['payment_status']) ?>">
-                            <?= ucfirst(str_replace('_', ' ', $tr['payment_status'])) ?>
-                        </span>
-                    </td>
-                    <td class="text-end"><?= number_format($tr['total_cost'], 2) ?></td>
+                    <td class="text-end">Rp. <?= number_format($tr['total_cost'], 2) ?></td>
                     <td>
                         <a href="?page=transactions&edit=<?= $tr['id'] ?><?= isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>">Edit</a>
 
@@ -192,18 +171,20 @@ $allUsers = $user->getAllUsers();
         </div>
 
         <div class="form-group">
+            <label for="description">Description:</label>
+            <input type="text" name="description" value="<?= $editMode ? htmlspecialchars($editTransactionData['description']) : '' ?>" required>
+        </div>
+
+        <div class="form-group">
             <label for="address">Location/Address:</label>
             <input type="text" name="address" value="<?= $editMode ? htmlspecialchars($editTransactionData['address_of_job']) : '' ?>" required>
         </div>
 
         <div class="form-group">
-            <label for="date">Date/Time:</label>
-            <input type="datetime-local" name="date" value="<?= $editMode ? date('Y-m-d\TH:i', strtotime($editTransactionData['date'])) : '' ?>" required>
-        </div>
-
-        <div class="form-group">
-            <label for="duration">Duration (hours):</label>
-            <input type="number" step="0.5" name="duration" value="<?= $editMode ? $editTransactionData['duration'] : '' ?>" required>
+            <label for="date">Date:</label>
+            <input type="date" name="date"
+                value="<?= $editMode ? date('Y-m-d', strtotime($editTransactionData['date'])) : '' ?>"
+                required>
         </div>
 
         <div class="form-group">
@@ -217,17 +198,7 @@ $allUsers = $user->getAllUsers();
         </div>
 
         <div class="form-group">
-            <label for="payment_status">Payment Status:</label>
-            <select name="payment_status" required>
-                <option value="unpaid" <?= $editMode && $editTransactionData['payment_status'] == 'unpaid' ? 'selected' : '' ?>>Unpaid</option>
-                <option value="partially_paid" <?= $editMode && $editTransactionData['payment_status'] == 'partially_paid' ? 'selected' : '' ?>>Partially Paid</option>
-                <option value="paid" <?= $editMode && $editTransactionData['payment_status'] == 'paid' ? 'selected' : '' ?>>Paid</option>
-                <option value="refunded" <?= $editMode && $editTransactionData['payment_status'] == 'refunded' ? 'selected' : '' ?>>Refunded</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="total_cost">Amount (RM):</label>
+            <label for="total_cost">Amount (RP):</label>
             <input type="number" step="0.01" name="total_cost" value="<?= $editMode ? $editTransactionData['total_cost'] : '' ?>" required>
         </div>
 

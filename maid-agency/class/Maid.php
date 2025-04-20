@@ -37,8 +37,22 @@ class Maid
         return $stmt->execute([$name, $specialization, $salary, $availability_status, $phone, $id]);
     }
 
+    // Check if a maid has associated transactions
+    public function hasMaidTransactions($id)
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM transactions WHERE id_maid = ?");
+        $stmt->execute([$id]);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+
     public function deleteMaid($id)
     {
+        // First check if there are associated transactions
+        if ($this->hasMaidTransactions($id)) {
+            return false; // Cannot delete due to existing transactions
+        }
+
+        // If no associated transactions, proceed with deletion
         $stmt = $this->db->prepare("DELETE FROM maids WHERE id = ?");
         return $stmt->execute([$id]);
     }

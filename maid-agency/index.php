@@ -19,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $maid->addMaid($name, $specialization, $salary, $availability, 0);
         if ($result) {
             header('Location: ?page=maids&message=Maid added successfully');
-            // exit;
         }
     }
 
@@ -34,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $maid->updateMaid($id, $name, $specialization, $salary, $availability, 0);
         if ($result) {
             header('Location: ?page=maids&message=Maid updated successfully');
-            // exit;
         }
     }
 
@@ -45,7 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $maid->deleteMaid($id);
         if ($result) {
             header('Location: ?page=maids&message=Maid deleted successfully');
-            // exit;
+            exit;
+        } else {
+            header('Location: ?page=maids&error=Cannot delete maid: This maid has associated transactions');
+            exit;
         }
     }
 
@@ -81,7 +82,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $result = $user->deleteUser($id);
         if ($result) {
             header('Location: ?page=users&message=User deleted successfully');
-            // exit;
+        }
+    }
+
+    // Add new transaction
+    if (isset($_POST['action']) && $_POST['action'] === 'add_transaction') {
+        $id_maid = $_POST['id_maid'] ?? 0;
+        $id_user = $_POST['id_user'] ?? 0;
+        $job_type = $_POST['job_type'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $address = $_POST['address'] ?? '';
+        $date = $_POST['date'] ?? '';
+        $status = $_POST['status'] ?? 'pending';
+        $total_cost = $_POST['total_cost'] ?? 0;
+
+        $result = $transaction->addTransaction(
+            $id_maid,
+            $id_user,
+            $job_type,
+            $description,
+            $address,
+            $date,
+            $status,
+            $total_cost
+        );
+
+        if ($result) {
+            header('Location: ?page=transactions&message=Transaction added successfully');
+        }
+    }
+
+    // Update transaction
+    if (isset($_POST['action']) && $_POST['action'] === 'update_transaction') {
+        $id = $_POST['id'] ?? 0;
+        $id_maid = $_POST['id_maid'] ?? 0;
+        $id_user = $_POST['id_user'] ?? 0;
+        $job_type = $_POST['job_type'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $address = $_POST['address'] ?? '';
+        $date = $_POST['date'] ?? '';
+        $status = $_POST['status'] ?? 'pending';
+        $total_cost = $_POST['total_cost'] ?? 0;
+
+        $result = $transaction->updateTransaction(
+            $id,
+            $id_maid,
+            $id_user,
+            $job_type,
+            $description,
+            $address,
+            $date,
+            $status,
+            $total_cost
+        );
+
+        if ($result) {
+            header('Location: ?page=transactions&message=Transaction updated successfully');
+        }
+    }
+
+    // Delete transaction
+    if (isset($_POST['action']) && $_POST['action'] === 'delete_transaction') {
+        $id = $_POST['id'] ?? 0;
+
+        $result = $transaction->deleteTransaction($id);
+        if ($result) {
+            header('Location: ?page=transactions&message=Transaction deleted successfully');
         }
     }
 }
@@ -99,8 +165,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <?php include 'views/page/header.php'; ?>
     <main>
-        <h2>Welcome to Test</h2>
+        <h2>Premium Maid Services At Your Fingertips</h2>
         <nav>
+            <a href="/">Home</a> |
             <a href="?page=maids">Maids</a> |
             <a href="?page=users">Users</a> |
             <a href="?page=transactions">Orders</a>
